@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 11:44:56
+# @Last Modified time: 2016-07-21 11:48:25
 
 import urllib3
 import sys
@@ -84,7 +84,7 @@ class DIGESDG(object):
 
     def __init__(self, token):
         # self.username, self.password = token.split(':')
-        self.cdr = 'https://' + token + '@els.istresearch.com:19200/memex-domains'
+        self.cdr = 'https://' + token + '@cdr-es.istresearch.com:9200/memex-domains'
         self.es = Elasticsearch(self.cdr)
 
     def load_sites(self):
@@ -92,9 +92,14 @@ class DIGESDG(object):
         sites = map(lambda x: x['key'], buckets)
         return sites
 
+    def load_data_by_site(self, site_name):
+        pass
 
     def generate(self):
+        site_name = 'liveescortreviews'
+
         print self.load_sites()
+        # print self.load_data_by_site(site_name)
         # print ", ".join(sites)
 
 
