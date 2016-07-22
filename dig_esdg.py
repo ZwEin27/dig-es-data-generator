@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 22:20:57
+# @Last Modified time: 2016-07-21 22:25:22
 
 import urllib3
 import re
@@ -115,10 +115,11 @@ class DIGESDG(object):
         sites = map(lambda x: x['key'], buckets)
         return sites
 
-    def load_data(self, site_name, keywords):
+    def load_data(self, site_name, keyword):
         # load data for specifc site name
         try:
             search_query['query']['filtered']['filter']['bool']['must'][0]['term']['extractions.text.attribs.target'] = site_name
+            search_query['query']['filtered']['query']['match']['extractions.text.results'] = keyword
             buckets = self.es.search(index='escorts', body=search_query)['hits']['hits']
         except Exception as e:
             raise Exception('site_name is incorrect')
@@ -155,13 +156,16 @@ class DIGESDG(object):
 
         return data_lines
 
-    def generate(self):
+    def generate(self, keywords=['ave',' blvd',' street',' st',' north',' south',' east',' west']):
         ans = []
         sites = self.load_sites()
         for site_name in sites:
-            data = self.load_data(site_name, keywords)
+            data = []
+            for keyword in keywords:
+                data += self.load_data(site_name, keyword)
             data = self.clean_data(data)
             ans += data
+            break
         return ans
 
 
