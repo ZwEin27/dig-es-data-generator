@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 22:25:22
+# @Last Modified time: 2016-07-21 22:33:27
 
 import urllib3
 import re
@@ -94,7 +94,7 @@ search_query = {
     "_source": [
         "extractions.text.results"
     ],
-    "size": 1
+    "size": 200
 }
 
 
@@ -156,16 +156,16 @@ class DIGESDG(object):
 
         return data_lines
 
-    def generate(self, keywords=['ave',' blvd',' street',' st',' north',' south',' east',' west']):
+    def generate(self, keywords=['ave',' blvd',' street',' st',' north',' south',' east',' west'], num_data=200):
         ans = []
         sites = self.load_sites()
         for site_name in sites:
             data = []
             for keyword in keywords:
                 data += self.load_data(site_name, keyword)
+            data = data[:num_data]
             data = self.clean_data(data)
             ans += data
-            break
         return ans
 
 
@@ -178,8 +178,8 @@ if __name__ == '__main__':
 
     args = arg_parser.parse_args()
 
-    dg = DIGESDG(args.token)     
-
+    dg = DIGESDG(args.token)  
+       
     print dg.generate()
 
 
