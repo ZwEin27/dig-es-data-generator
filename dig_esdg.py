@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 22:33:27
+# @Last Modified time: 2016-07-21 23:22:41
 
 import urllib3
 import re
@@ -94,7 +94,7 @@ search_query = {
     "_source": [
         "extractions.text.results"
     ],
-    "size": 200
+    "size": 500
 }
 
 
@@ -137,16 +137,16 @@ class DIGESDG(object):
                 ans.append(text)
         return ans
 
-    def clean_data(self, data_lines):
+    def dedup_data(self, data_lines):
 
         def clean(data):
             return ' '.join(sorted([_.strip() for _ in re_tokenize.split(data) if _.strip() != '']))
 
         def hash(data):
-            return hashlib.sha224(data).hexdigest()#+hashlib.sha256(data).hexdigest()+hashlib.md5(data).hexdigest()
+            return hashlib.sha224(clean(data).encode('ascii', 'ignore')).hexdigest()#+hashlib.sha256(data).hexdigest()+hashlib.md5(data).hexdigest()
 
         # clean
-        data_lines = [clean(_) for _ in data_lines]
+        # data_lines = [clean(_) for _ in data_lines]
 
         # dedup
         dedup = {}
@@ -163,8 +163,8 @@ class DIGESDG(object):
             data = []
             for keyword in keywords:
                 data += self.load_data(site_name, keyword)
-            data = data[:num_data]
-            data = self.clean_data(data)
+            # data = data[:num_data]
+            data = self.dedup_data(data)[:num_data]
             ans += data
         return ans
 
