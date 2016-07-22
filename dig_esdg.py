@@ -2,13 +2,15 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 21:59:58
+# @Last Modified time: 2016-07-21 22:20:57
 
 import urllib3
+import re
 import sys
 from elasticsearch import Elasticsearch
 import json
 import getopt
+import hashlib
 
 urllib3.disable_warnings()
 
@@ -16,6 +18,11 @@ urllib3.disable_warnings()
 #   Constant
 ######################################################################
 
+######################################################################
+#   Regular Expression
+######################################################################
+
+re_tokenize = re.compile(r'[\s!\"#\$%&\'\(\)\*\+,\-\./:;<=>\?@\[\\\]\^_`{|}~]')
 
 ######################################################################
 #   Query
@@ -108,17 +115,15 @@ class DIGESDG(object):
         sites = map(lambda x: x['key'], buckets)
         return sites
 
-    def load_data_by_site(self, site_name):
+    def load_data(self, site_name, keywords):
+        # load data for specifc site name
         try:
-            # print site_name
             search_query['query']['filtered']['filter']['bool']['must'][0]['term']['extractions.text.attribs.target'] = site_name
-            return search_query['query']
-            
-            # print json.dumps(search_query, indent=4)
-            # buckets = self.es.search(index='escorts', body=search_query)['hits']['hits']
+            buckets = self.es.search(index='escorts', body=search_query)['hits']['hits']
         except Exception as e:
             raise Exception('site_name is incorrect')
-        return 'ss'
+
+        # load fetched data
         ans = []
         for bucket in buckets:
             try:
@@ -131,12 +136,33 @@ class DIGESDG(object):
                 ans.append(text)
         return ans
 
-    def generate(self):
-        site_name = 'backpage'
-        # print self.load_sites()
-        return self.load_data_by_site(site_name)
-        # print ", ".join(sites)
+    def clean_data(self, data_lines):
 
+        def clean(data):
+            return ' '.join(sorted([_.strip() for _ in re_tokenize.split(data) if _.strip() != '']))
+
+        def hash(data):
+            return hashlib.sha224(data).hexdigest()#+hashlib.sha256(data).hexdigest()+hashlib.md5(data).hexdigest()
+
+        # clean
+        data_lines = [clean(_) for _ in data_lines]
+
+        # dedup
+        dedup = {}
+        for data in data_lines:
+            dedup[hash(data)] = data
+        data_lines = dedup.values()
+
+        return data_lines
+
+    def generate(self):
+        ans = []
+        sites = self.load_sites()
+        for site_name in sites:
+            data = self.load_data(site_name, keywords)
+            data = self.clean_data(data)
+            ans += data
+        return ans
 
 
 if __name__ == '__main__':
