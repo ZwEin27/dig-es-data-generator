@@ -2,7 +2,7 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-21 23:22:41
+# @Last Modified time: 2016-07-22 08:50:21
 
 import urllib3
 import re
@@ -156,7 +156,7 @@ class DIGESDG(object):
 
         return data_lines
 
-    def generate(self, keywords=['ave',' blvd',' street',' st',' north',' south',' east',' west'], num_data=200):
+    def generate(self, keywords=['ave','blvd','street','st','avenue','rd','boulevard','parkway','pkwy'], num_data=200):
         ans = []
         sites = self.load_sites()
         for site_name in sites:
