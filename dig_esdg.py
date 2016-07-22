@@ -2,7 +2,13 @@
 # @Author: ZwEin
 # @Date:   2016-07-21 11:12:02
 # @Last Modified by:   ZwEin
-# @Last Modified time: 2016-07-22 08:50:21
+# @Last Modified time: 2016-07-22 11:07:01
+
+"""
+python dig_esdg.py -t "<USERNAME>:<PASSWORD>" -o <OUTPUT_FILE_PATH>
+
+"""
+
 
 import urllib3
 import re
@@ -156,16 +162,25 @@ class DIGESDG(object):
 
         return data_lines
 
-    def generate(self, keywords=['ave','blvd','street','st','avenue','rd','boulevard','parkway','pkwy'], num_data=200):
-        ans = []
+    def generate(self, output_path=None, keywords=['ave','blvd','street','st','avenue','rd','boulevard','parkway','pkwy'], num_data=200):
+        ans = {}
         sites = self.load_sites()
         for site_name in sites:
             data = []
             for keyword in keywords:
-                data += self.load_data(site_name, keyword)
+                ans.setdefault(keyword, [])
+                ans[keyword] += self.load_data(site_name, keyword)
+                # data += self.load_data(site_name, keyword)
             # data = data[:num_data]
-            data = self.dedup_data(data)[:num_data]
-            ans += data
+            # data = self.dedup_data(data)[:num_data]
+            # ans += data
+        ans = {k:self.dedup_data(v) for (k, v) in ans.iteritems()}
+
+        if output_path:
+            file_handler = open(output_path, 'wb')
+            file_handler.write(json.dumps(ans, sort_keys=True, indent=4))
+            file_handler.close()
+
         return ans
 
 
@@ -175,11 +190,14 @@ if __name__ == '__main__':
 
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-t','--token', required=True)
+    arg_parser.add_argument('-k','--keywords', required=False)
+    arg_parser.add_argument('-n','--num_data', required=False)
+    arg_parser.add_argument('-o','--output_path', required=False)
 
     args = arg_parser.parse_args()
 
     dg = DIGESDG(args.token)  
        
-    print dg.generate()
+    print dg.generate(keywords=keywords, num_data=num_data, output_path=args.output_path)
 
 
